@@ -13,6 +13,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #=============================================================================
+# MIT License
+#
+# Modifications Copyright (c) 2023-2024 Advanced Micro Devices, Inc.
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+#=============================================================================
 include(${rapids-cmake-dir}/find/package.cmake)
 
 #=============================================================================
@@ -32,21 +54,31 @@ include(${rapids-cmake-dir}/find/package.cmake)
 #=============================================================================
 include(${rapids-cmake-dir}/find/package.cmake)
 
-rapids_find_package(CUDAToolkit 11 REQUIRED
-										INSTALL_EXPORT_SET test_export_set
-					          BUILD_EXPORT_SET test_export_set)
+if(CUDA_BACKEND)
+  rapids_find_package(CUDAToolkit 11 REQUIRED
+                      INSTALL_EXPORT_SET test_export_set
+                      BUILD_EXPORT_SET test_export_set)
 
-set(to_match_string "find_package(CUDAToolkit 11 QUIET)")
+  set(to_match_string "find_package(CUDAToolkit 11 QUIET)")
+  set(build_path "${CMAKE_BINARY_DIR}/rapids-cmake/test_export_set/build/package_CUDAToolkit.cmake")
+  set(install_path "${CMAKE_BINARY_DIR}/rapids-cmake/test_export_set/install/package_CUDAToolkit.cmake")
+else()
+  # TODO version information is not yet supported in HIP
+  rapids_find_package(HIP REQUIRED
+                      INSTALL_EXPORT_SET test_export_set
+                      BUILD_EXPORT_SET test_export_set)
+  set(to_match_string "find_dependency(HIP)")
+  set(build_path "${CMAKE_BINARY_DIR}/rapids-cmake/test_export_set/build/package_HIP.cmake")
+  set(install_path "${CMAKE_BINARY_DIR}/rapids-cmake/test_export_set/install/package_HIP.cmake")
+endif()
 
-set(path "${CMAKE_BINARY_DIR}/rapids-cmake/test_export_set/build/package_CUDAToolkit.cmake")
-file(READ "${path}" contents)
+file(READ "${build_path}" contents)
 string(FIND "${contents}" "${to_match_string}" is_found)
 if(is_found EQUAL -1)
   message(FATAL_ERROR "rapids_find_package(BUILD) failed to preserve version information in exported file")
 endif()
 
-set(path "${CMAKE_BINARY_DIR}/rapids-cmake/test_export_set/install/package_CUDAToolkit.cmake")
-file(READ "${path}" contents)
+file(READ "${install_path}" contents)
 string(FIND "${contents}" "${to_match_string}" is_found)
 if(is_found EQUAL -1)
   message(FATAL_ERROR "rapids_find_package(INSTALL) failed to preserve version information in exported file")

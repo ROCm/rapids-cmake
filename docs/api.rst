@@ -63,6 +63,12 @@ package uses :ref:`can be found here. <cpm_versions>`
    /packages/rapids_cpm_rmm
    /packages/rapids_cpm_spdlog
    /packages/rapids_cpm_thrust
+   /packages/rapids_cpm_hipco
+   /packages/rapids_cpm_libhipcxx
+   /packages/rapids_cpm_hipbench
+   /packages/rapids_cpm_hipcomp
+   /packages/rapids_cpm_hiprmm
+   /packages/rapids_cpm_rocthrust
 
 .. _`cython`:
 
@@ -137,6 +143,21 @@ require.
     rapids_cuda_set_runtime </command/rapids_cuda_set_runtime>
     rapids_cuda_set_architectures [Advanced] </command/rapids_cuda_set_architectures>
 
+
+.. _`hip`:
+
+HIP
+***
+
+The `rapids_hip` functions provide common CMake HIP logic for AMD GPU based projects.
+
+.. toctree::
+   :titlesonly:
+
+    rapids_hip_init_architectures </command/rapids_hip_init_architectures>
+    rapids_hip_init_runtime </command/rapids_hip_init_runtime>
+    rapids_hip_patch_toolkit </command/rapids_hip_patch_toolkit>
+    rapids_hip_set_architectures [Advanced] </command/rapids_hip_set_architectures>
 
 .. _`export`:
 

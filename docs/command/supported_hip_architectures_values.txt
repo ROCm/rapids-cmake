@@ -1,0 +1,7 @@
+
+``NATIVE`` or ``""``:
+  When passed as the value for :cmake:variable:`CMAKE_HIP_ARCHITECTURES <cmake:variable:CMAKE_HIP_ARCHITECTURES>` or :cmake:envvar:`ENV{HIPARCHS} <cmake:envvar:HIPARCHS>`
+  will compile for all GPU architectures present on the current machine.
+
+``RAPIDS``, ``ALL``, or no value in :cmake:variable:`CMAKE_HIP_ARCHITECTURES <cmake:variable:CMAKE_HIP_ARCHITECTURES>` and :cmake:envvar:`ENV{HIPARCHS} <cmake:envvar:HIPARCHS>`:
+  When passed as the value for :cmake:variable:`CMAKE_HIP_ARCHITECTURES <cmake:variable:CMAKE_HIP_ARCHITECTURES>` or :cmake:envvar:`ENV{HIPARCHS} <cmake:envvar:HIPARCHS>` will compile for all supported RAPIDS GPU architectures.

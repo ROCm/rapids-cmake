@@ -1,10 +1,10 @@
-# <div align="left"><img src="https://rapids.ai/assets/images/rapids_logo.png" width="90px"/>&nbsp;rapids-cmake</div>
+# ROCm(TM) port of RAPIDS(R) CMake
 
-**NOTE:** For the latest stable [README.md](https://github.com/rapidsai/rapids-cmake/blob/main/README.md) ensure you are on the `main` branch.
+**NOTE:** For the latest stable [README.md](https://github.com/ROCm/rapids-cmake/blob/main/README.md) ensure you are on the `main` branch.
 
 ## Overview
 
-This is a collection of CMake modules that are useful for all CUDA RAPIDS
+This is a collection of CMake modules that are useful for all RAPIDS
 projects. By sharing the code in a single place it makes rolling out CMake
 fixes easier.
 
@@ -19,7 +19,7 @@ Content](https://cmake.org/cmake/help/latest/module/FetchContent.html) into your
 cmake_minimum_required(...)
 
 if(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/<PROJECT>_RAPIDS.cmake)
-  file(DOWNLOAD https://raw.githubusercontent.com/rapidsai/rapids-cmake/branch-<VERSION_MAJOR>.<VERSION_MINOR>/RAPIDS.cmake
+  file(DOWNLOAD https://raw.githubusercontent.com/ROCm/rapids-cmake/branch-<VERSION_MAJOR>.<VERSION_MINOR>/RAPIDS.cmake
     ${CMAKE_CURRENT_BINARY_DIR}/<PROJECT>_RAPIDS.cmake)
 endif()
 include(${CMAKE_CURRENT_BINARY_DIR}/<PROJECT>_RAPIDS.cmake)
@@ -154,7 +154,7 @@ At times projects or developers will need to verify ``rapids-cmake`` branches. T
   #
   set(rapids-cmake-fetch-via-git "ON")
 
-  file(DOWNLOAD https://raw.githubusercontent.com/rapidsai/rapids-cmake/branch-22.10/RAPIDS.cmake
+  file(DOWNLOAD https://raw.githubusercontent.com/ROCm/rapids-cmake/branch-23.12/RAPIDS.cmake
       ${CMAKE_CURRENT_BINARY_DIR}/RAPIDS.cmake)
   include(${CMAKE_CURRENT_BINARY_DIR}/RAPIDS.cmake)
 ```
@@ -168,4 +168,4 @@ A few notes:
 
 ## Contributing
 
-Review the [CONTRIBUTING.md](https://github.com/rapidsai/rapids-cmake/blob/main/CONTRIBUTING.md) file for information on how to contribute code and issues to the project.
+Review the [CONTRIBUTING.md](https://github.com/ROCm/rapids-cmake/blob/main/CONTRIBUTING.md) file for information on how to contribute code and issues to the project.
