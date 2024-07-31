@@ -36,23 +36,28 @@
 # SOFTWARE.
 #=============================================================================
 
+#: NOTE(HIP/AMD)
+set(CMAKE_HIP_SOURCE_FILE_EXTENSIONS hip;cu) #: NOTE(HIP/AMD): make *.cu an HIP language extension
+set(CUDA_BACKEND FALSE) #: NOTE(HIP/AMD): not really required, FALSE is actually the default
+set(HIP_AS_CUDA TRUE) #: NOTE(HIP/AMD): not really required, TRUE is actually the default
+
 cmake_minimum_required(VERSION 3.23.1 FATAL_ERROR)
 
 if(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/EXAMPLE_RAPIDS.cmake)
-  file(DOWNLOAD https://raw.githubusercontent.com/ROCm/rapids-cmake/branch-23.12/RAPIDS.cmake
+  file(DOWNLOAD https://raw.githubusercontent.com/ROCm/rapids-cmake/branch-24.06/RAPIDS.cmake
        ${CMAKE_CURRENT_BINARY_DIR}/EXAMPLE_RAPIDS.cmake)
 endif()
 include(${CMAKE_CURRENT_BINARY_DIR}/EXAMPLE_RAPIDS.cmake)
 
 include(rapids-cmake)
 include(rapids-cpm)
-include(rapids-cuda)
+include(rapids-cuda) #: NOTE(HIP/AMD): Delegates to rapids-hip*
 include(rapids-export)
 include(rapids-find)
 
-rapids_cuda_init_architectures(integration)
+rapids_cuda_init_architectures(integration) #: NOTE(HIP/AMD): Delegates to rapids-hip*
 
-project(integration VERSION 21.12 LANGUAGES C CXX CUDA)
+project(integration VERSION 21.12 LANGUAGES C CXX HIP) #: NOTE(HIP/AMD): CUDA->HIP
 message(STATUS "Example: CMAKE_CUDA_ARCHITECTURES: ${CMAKE_CUDA_ARCHITECTURES}")
 
 option(CUDA_STATIC_RUNTIME "Use CUDA static runtime" OFF)
@@ -60,14 +65,16 @@ option(CUDA_STATIC_RUNTIME "Use CUDA static runtime" OFF)
 rapids_cmake_build_type(Release)
 
 # Set the CUDA runtime CUDA targets will use
-rapids_cuda_init_runtime(USE_STATIC ${CUDA_STATIC_RUNTIME})
+rapids_cuda_init_runtime(USE_STATIC ${CUDA_STATIC_RUNTIME}) #: NOTE(HIP/AMD): No support for USE_STATIC != OFF
 
 
 # conda environment
 rapids_cmake_support_conda_env( conda_env MODIFY_PREFIX_PATH )
 
 # Find the CUDAToolkit
-rapids_find_package(CUDAToolkit REQUIRED
+rapids_find_package(#: CUDAToolkit
+                    HIP #: NOTE(HIP/AMD): CUDA->HIP, we could intercept 'CUDAToolkit' in ``rapids_find_package``
+                    REQUIRED
                     BUILD_EXPORT_SET example-targets
                     INSTALL_EXPORT_SET example-targets
                     )
@@ -125,8 +132,8 @@ set_target_properties(example
                # set target compile options
                CXX_STANDARD                        17
                CXX_STANDARD_REQUIRED               ON
-               CUDA_STANDARD                       17
-               CUDA_STANDARD_REQUIRED              ON
+               # CUDA_STANDARD                       17 #: NOTE(HIP/AMD): CUDA->HIP
+               # CUDA_STANDARD_REQUIRED              ON #: NOTE(HIP/AMD): CUDA->HIP
                POSITION_INDEPENDENT_CODE           ON
                INTERFACE_POSITION_INDEPENDENT_CODE ON
                )
@@ -180,7 +187,7 @@ set(code_string
 rapids_export(BUILD example
     EXPORT_SET example-targets
     GLOBAL_TARGETS example # since we can't hook into EXPORT SETS
-    LANGUAGES CUDA
+    LANGUAGES HIP #: NOTE(HIP/AMD): CUDA->HIP, we could intercept in ``rapids_export``
     DOCUMENTATION doc_string
     FINAL_CODE_BLOCK code_string
     )
