@@ -1,5 +1,20 @@
 # ROCm(TM) port of RAPIDS(R) CMake
 
+***
+
+**WARNING:** Work in progress
+
+This repository still needs to be aligned with all its dependers, e.g., 
+`ROCm/RMM-rocm`, in order for it to work  100 % properly.
+When a RAPIDS CMake depender such as `ROCm/RMM-rocm` is fetched via  RAPIDS 
+CMake,  the depender will again fetch the 
+`ROCm/rapids-cmake/<branch>/RAPIDS.cmake` file from a default `<branch>` 
+that is hardcoded into the depender repository.
+
+This warning will be removed when we are done.
+
+***
+
 **NOTE:** For the latest stable [README.md](https://github.com/ROCm/rapids-cmake/blob/main/README.md) ensure you are on the `main` branch.
 
 ## Overview
