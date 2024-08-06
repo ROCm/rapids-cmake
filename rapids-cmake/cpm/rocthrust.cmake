@@ -80,37 +80,35 @@ function(rapids_cpm_rocthrust)
   set(multi_value)
   cmake_parse_arguments(_RAPIDS "${options}" "${one_value}" "${multi_value}" ${ARGN})
 
-  if(_RAPIDS_INSTALL_EXPORT_SET)
-    list(APPEND _RAPIDS_UNPARSED_ARGUMENTS INSTALL_EXPORT_SET ${_RAPIDS_INSTALL_EXPORT_SET})
-  endif()
-
   include("${rapids-cmake-dir}/cpm/detail/package_details.cmake")
   rapids_cpm_package_details(rocthrust version repository tag shallow exclude)
-  set(to_exclude OFF)
-  if(NOT _RAPIDS_INSTALL_EXPORT_SET OR exclude)
-    set(to_exclude ON)
-  endif()
 
   include("${rapids-cmake-dir}/cpm/detail/generate_patch_command.cmake")
   rapids_cpm_generate_patch_command(rocthrust ${version} patch_command)
 
   include("${rapids-cmake-dir}/cpm/find.cmake")
-  rapids_cpm_find(rocthrust ${version} ${ARGN} {_RAPIDS_UNPARSED_ARGUMENTS}
-                  GLOBAL_TARGETS roc::rocthrust roc::rocprim_hip
+  rapids_cpm_find(rocthrust ${version} ${ARGN} ${_RAPIDS_UNPARSED_ARGUMENTS}
+                  GLOBAL_TARGETS rocthrust
                   CPM_ARGS FIND_PACKAGE_ARGUMENTS EXACT
                   GIT_REPOSITORY ${repository}
                   GIT_TAG ${tag}
                   GIT_SHALLOW ${shallow}
                   PATCH_COMMAND ${patch_command}
                   EXCLUDE_FROM_ALL ${exclude}
-                  OPTIONS "THRUST_ENABLE_INSTALL_RULES ${to_install}")
+                  OPTIONS "DOWNLOAD_ROCPRIM ON")
 
-  if(NOT TARGET roc::rocthrust)
-    message(FATAL_ERROR "Expected roc::rocthrust to exist")
+  if(NOT TARGET rocthrust)
+    message(FATAL_ERROR "Expected rocthrust to exist")
   endif()
 
-  if(NOT TARGET roc::rocprim_hip)
-    message(FATAL_ERROR "Expected roc::rocthrust to exist")
+  add_library(roc::rocthrust ALIAS rocthrust)
+
+  if (NOT DEFINED rocthrust_BINARY_DIR)
+    message(rocthrust_BINARY_DIR "Expected variable rocthrust_BINARY_DIR to be defined")
+  endif()
+
+  if(_RAPIDS_BUILD_EXPORT_SET)
+    install(TARGETS rocthrust EXPORT ${_RAPIDS_BUILD_EXPORT_SET})
   endif()
 
   include("${rapids-cmake-dir}/cpm/detail/display_patch_status.cmake")
@@ -135,6 +133,11 @@ if (HIP_AS_CUDA)
   function(rapids_cpm_thrust NAMESPACE namespaces_name)
     rapids_cpm_rocthrust(${ARGN})
 
-    add_library(${namespaces_name}::Thrust ALIAS rocthrust::rocthrust)
+    get_property(rocthrust_orig TARGET roc::rocthrust PROPERTY ALIASED_TARGET)
+    if ("${rocthrust_orig}" STREQUAL "")
+      add_library(${namespaces_name}::Thrust ALIAS roc::rocthrust)
+    else()
+      add_library(${namespaces_name}::Thrust ALIAS "${rocthrust_orig}")
+    endif()
   endfunction()
 endif()
