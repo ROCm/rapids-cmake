@@ -146,6 +146,7 @@ target_link_libraries(example
 
 # Add Conda env exist s, use it for link and include dirs
 if(TARGET conda_env)
+  install(TARGETS conda_env EXPORT example-targets)
   target_link_libraries(example PUBLIC $<BUILD_INTERFACE:conda_env> )
 endif()
 
