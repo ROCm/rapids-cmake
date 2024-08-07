@@ -103,7 +103,7 @@ function(rapids_cpm_libhipcxx)
     # Store where CMake can find our custom libhipcxx
     include("${rapids-cmake-dir}/export/find_package_root.cmake")
     rapids_export_find_package_root(BUILD libhipcxx "${libhipcxx_SOURCE_DIR}/lib/cmake"
-                                    ${_RAPIDS_BUILD_EXPORT_SET})
+                                    EXPORT_SET ${_RAPIDS_BUILD_EXPORT_SET})
   endif()
 
   if(libhipcxx_SOURCE_DIR AND _RAPIDS_INSTALL_EXPORT_SET AND NOT exclude)
