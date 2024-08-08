@@ -116,7 +116,7 @@ function(rapids_cpm_rocthrust)
       set(CPM_LOCAL_PACKAGES_ONLY ON)
     endif()
     rapids_cpm_find(rocthrust ${version} ${ARGN} ${_RAPIDS_UNPARSED_ARGUMENTS}
-                    GLOBAL_TARGETS rocthrust
+                    GLOBAL_TARGETS rocthrust roc::rocthrust
                     CPM_ARGS FIND_PACKAGE_ARGUMENTS EXACT
                     GIT_REPOSITORY ${repository}
                     GIT_TAG ${tag}
@@ -128,20 +128,18 @@ function(rapids_cpm_rocthrust)
   set(CPM_USE_LOCAL_PACKAGES tmp_CPM_USE_LOCAL_PACKAGES) # restore original value
   set(CPM_LOCAL_PACKAGES_ONLY tmp_CPM_LOCAL_PACKAGES_ONLY) # restore original value
 
-  if(NOT TARGET rocthrust)
-    message(FATAL_ERROR "Expected rocthrust to exist")
-  endif()
-
-  if (NOT TARGET roc::rocthrust)
+  if (NOT TARGET roc::rocthrust AND TARGET rocthrust)
+    # target is named 'rocthrust' if this NOT a local installation
     add_library(roc::rocthrust ALIAS rocthrust)
+    if(_RAPIDS_BUILD_EXPORT_SET)
+      install(TARGETS rocthrust EXPORT ${_RAPIDS_BUILD_EXPORT_SET})
+    endif()
+  elseif(NOT TARGET roc::rocthrust)
+    message(FATAL_ERROR "Expected rocthrust or roc::rocthrust to exist")
   endif()
 
   if (NOT DEFINED rocthrust_BINARY_DIR)
     message(rocthrust_BINARY_DIR "Expected variable rocthrust_BINARY_DIR to be defined")
-  endif()
-
-  if(_RAPIDS_BUILD_EXPORT_SET)
-    install(TARGETS rocthrust EXPORT ${_RAPIDS_BUILD_EXPORT_SET})
   endif()
 
   include("${rapids-cmake-dir}/cpm/detail/display_patch_status.cmake")
