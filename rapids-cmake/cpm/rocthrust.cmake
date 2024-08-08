@@ -72,6 +72,11 @@ Option `PREFER_LOCAL <value>` has no effect if `USE_LOCAL ON` is specified.
 TRUE/FALSE, YES/NO, Y/N, ...; more details:
 https://cmake.org/cmake/help/latest/command/if.html#constant)
 
+There is also the option to override the behavior via the environment variables:
+
+`RAPIDS_CMAKE_ROCTHRUST_PREFER_LOCAL`
+`RAPIDS_CMAKE_ROCTHRUST_USE_LOCAL`
+
 Result Targets
 ^^^^^^^^^^^^^^
   roc::rocthrust target will be created
@@ -109,12 +114,20 @@ function(rapids_cpm_rocthrust)
   set(tmp_CPM_USE_LOCAL_PACKAGES CPM_USE_LOCAL_PACKAGES) # memorize original value
   set(tmp_CPM_LOCAL_PACKAGES_ONLY CPM_LOCAL_PACKAGES_ONLY) # memorize original value
 
+    # note: order doesn't matter
     if (_RAPIDS_PREFER_LOCAL)
       set(CPM_USE_LOCAL_PACKAGES ON)
+    elseif($ENV{RAPIDS_CMAKE_ROCTHRUST_PREFER_LOCAL}) # note: can't OR with if condition as $ENV{..} may eval to ""
+      set(CPM_USE_LOCAL_PACKAGES ON)
     endif()
+
+    # note: order doesn't matter
     if (_RAPIDS_USE_LOCAL)
       set(CPM_LOCAL_PACKAGES_ONLY ON)
+    elseif($ENV{RAPIDS_CMAKE_ROCTHRUST_USE_LOCAL}) # note: can't OR with if condition as $ENV{..} may eval to ""
+      set(CPM_LOCAL_PACKAGES_ONLY ON)
     endif()
+
     rapids_cpm_find(rocthrust ${version} ${ARGN} ${_RAPIDS_UNPARSED_ARGUMENTS}
                     GLOBAL_TARGETS rocthrust roc::rocthrust
                     CPM_ARGS FIND_PACKAGE_ARGUMENTS EXACT
