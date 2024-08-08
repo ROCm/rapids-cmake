@@ -48,10 +48,34 @@ tracking of these dependencies for correct export support.
 
   rapids_cpm_rocthrust([BUILD_EXPORT_SET <export-name>]
                      [INSTALL_EXPORT_SET <export-name>]
+                     [PREFER_LOCAL <prefer-local>]
+                     [USE_LOCAL <prefer-local>]
                      [<CPM_ARGS> ...])
 
 .. |PKG_NAME| replace:: rocthrust
 .. include:: common_package_args.txt
+
+Prefer/Use Local rocThrust Installation
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If you specify the key-value pair `PREFER_LOCAL ON`, this function first look for a local
+version of `rocThrust`, e.g., one from a ROCm installation.
+The default behavior is that of `PREFER_LOCAL OFF`, i.e., that rocThrust is downloaded
+from its Git repository.
+
+If you specify the key-value pair `USE_LOCAL ON` instead, this function will ONLY look
+for a local version  of `rocThrust`. An error will be reported if no local version could be found.
+The default behavior is that of `USE_LOCAL OFF`.
+Option `PREFER_LOCAL <value>` has no effect if `USE_LOCAL ON` is specified.
+
+(Note that instead of the values "ON" and "OFF", alternative values can be specified such as
+TRUE/FALSE, YES/NO, Y/N, ...; more details:
+https://cmake.org/cmake/help/latest/command/if.html#constant)
+
+There is also the option to override the behavior via the environment variables:
+
+`RAPIDS_CMAKE_ROCTHRUST_PREFER_LOCAL`
+`RAPIDS_CMAKE_ROCTHRUST_USE_LOCAL`
 
 Result Targets
 ^^^^^^^^^^^^^^
@@ -71,12 +95,11 @@ Result Variables
 
 #]=======================================================================]
 # cmake-lint: disable=R0915
-# TODO(HIP/AMD): Namespace support is not really sorted out yet.
 function(rapids_cpm_rocthrust)
   list(APPEND CMAKE_MESSAGE_CONTEXT "rapids.cpm.rocthrust")
 
   set(options)
-  set(one_value BUILD_EXPORT_SET INSTALL_EXPORT_SET)
+  set(one_value BUILD_EXPORT_SET INSTALL_EXPORT_SET USE_LOCAL PREFER_LOCAL)
   set(multi_value)
   cmake_parse_arguments(_RAPIDS "${options}" "${one_value}" "${multi_value}" ${ARGN})
 
@@ -87,30 +110,49 @@ function(rapids_cpm_rocthrust)
   rapids_cpm_generate_patch_command(rocthrust ${version} patch_command)
 
   include("${rapids-cmake-dir}/cpm/find.cmake")
-  rapids_cpm_find(rocthrust ${version} ${ARGN} ${_RAPIDS_UNPARSED_ARGUMENTS}
-                  GLOBAL_TARGETS rocthrust
-                  CPM_ARGS FIND_PACKAGE_ARGUMENTS EXACT
-                  GIT_REPOSITORY ${repository}
-                  GIT_TAG ${tag}
-                  GIT_SHALLOW ${shallow}
-                  PATCH_COMMAND ${patch_command}
-                  EXCLUDE_FROM_ALL ${exclude}
-                  OPTIONS "DOWNLOAD_ROCPRIM ON")
 
-  if(NOT TARGET rocthrust)
-    message(FATAL_ERROR "Expected rocthrust to exist")
-  endif()
+  set(tmp_CPM_USE_LOCAL_PACKAGES CPM_USE_LOCAL_PACKAGES) # memorize original value
+  set(tmp_CPM_LOCAL_PACKAGES_ONLY CPM_LOCAL_PACKAGES_ONLY) # memorize original value
 
-  if (NOT TARGET roc::rocthrust)
+    # note: order doesn't matter
+    if (_RAPIDS_PREFER_LOCAL)
+      set(CPM_USE_LOCAL_PACKAGES ON)
+    elseif($ENV{RAPIDS_CMAKE_ROCTHRUST_PREFER_LOCAL}) # note: can't OR with if condition as $ENV{..} may eval to ""
+      set(CPM_USE_LOCAL_PACKAGES ON)
+    endif()
+
+    # note: order doesn't matter
+    if (_RAPIDS_USE_LOCAL)
+      set(CPM_LOCAL_PACKAGES_ONLY ON)
+    elseif($ENV{RAPIDS_CMAKE_ROCTHRUST_USE_LOCAL}) # note: can't OR with if condition as $ENV{..} may eval to ""
+      set(CPM_LOCAL_PACKAGES_ONLY ON)
+    endif()
+
+    rapids_cpm_find(rocthrust ${version} ${ARGN} ${_RAPIDS_UNPARSED_ARGUMENTS}
+                    GLOBAL_TARGETS rocthrust roc::rocthrust
+                    CPM_ARGS FIND_PACKAGE_ARGUMENTS EXACT
+                    GIT_REPOSITORY ${repository}
+                    GIT_TAG ${tag}
+                    GIT_SHALLOW ${shallow}
+                    PATCH_COMMAND ${patch_command}
+                    EXCLUDE_FROM_ALL ${exclude}
+                    OPTIONS "DOWNLOAD_ROCPRIM ON")
+
+  set(CPM_USE_LOCAL_PACKAGES tmp_CPM_USE_LOCAL_PACKAGES) # restore original value
+  set(CPM_LOCAL_PACKAGES_ONLY tmp_CPM_LOCAL_PACKAGES_ONLY) # restore original value
+
+  if (NOT TARGET roc::rocthrust AND TARGET rocthrust)
+    # target is named 'rocthrust' if this NOT a local installation
     add_library(roc::rocthrust ALIAS rocthrust)
+    if(_RAPIDS_BUILD_EXPORT_SET)
+      install(TARGETS rocthrust EXPORT ${_RAPIDS_BUILD_EXPORT_SET})
+    endif()
+  elseif(NOT TARGET roc::rocthrust)
+    message(FATAL_ERROR "Expected rocthrust or roc::rocthrust to exist")
   endif()
 
   if (NOT DEFINED rocthrust_BINARY_DIR)
     message(rocthrust_BINARY_DIR "Expected variable rocthrust_BINARY_DIR to be defined")
-  endif()
-
-  if(_RAPIDS_BUILD_EXPORT_SET)
-    install(TARGETS rocthrust EXPORT ${_RAPIDS_BUILD_EXPORT_SET})
   endif()
 
   include("${rapids-cmake-dir}/cpm/detail/display_patch_status.cmake")
